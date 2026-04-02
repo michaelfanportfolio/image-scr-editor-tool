@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Source Manifest Manager</title>
+    <!-- Tailwind CSS for precise, utility-first styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for the JSON output for visual polish */
+        pre::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        pre::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        pre::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto space-y-8">
+        
+        <!-- Header Section -->
+        <header class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">HTML Image Updater Pipeline</h1>
+                <p class="text-slate-500 text-sm">A 3-step tool to bulk update image sources without manually hunting through code.</p>
+            </div>
+            <button onclick="loadSample()" class="text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold py-2 px-4 rounded-lg transition-colors border border-blue-200">
+                Load Sample Code
+            </button>
+        </header>
+
+        <!-- Section 1: Original Code Input -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-slate-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">1</div>
+                <h2 class="text-xl font-bold text-slate-900">Paste Original Code</h2>
+            </div>
+            <textarea 
+                id="input-code" 
+                oninput="processCode()"
+                placeholder='Paste your HTML code here. Example: <img src="old-image.jpg" class="hero">'
+                class="w-full h-48 p-4 bg-slate-50 border border-slate-300 rounded-xl font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow text-slate-700 whitespace-pre"
+            ></textarea>
+        </section>
+
+        <!-- Section 2: Filter & Map Table -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-slate-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">2</div>
+                    <h2 class="text-xl font-bold text-slate-900">Map Image Sources</h2>
+                </div>
+                <span class="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full border border-slate-200">
+                    Found: <span id="image-count">0</span> images
+                </span>
+            </div>
+            
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-1/3">Element Context</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-1/3">Original SRC</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-1/3">Target SRC (Update Here)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="3" class="px-6 py-12 text-center text-slate-400 text-sm">
+                                Paste HTML code in Step 1 to extract image tags.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 3: Final Output Code -->
+        <section class="bg-slate-900 p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-md shadow-blue-500/20">3</div>
+                    <h2 class="text-xl font-bold text-white">Refined Output Code</h2>
+                </div>
+                <button id="copy-btn" onclick="copyResult()" class="bg-white/10 hover:bg-white/20 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors border border-white/10 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,160H40V56H216V200ZM176,88a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,88Zm0,40a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,128Zm0,40a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,168Z"></path></svg>
+                    Copy Final Code
+                </button>
+            </div>
+            <textarea 
+                id="output-code" 
+                readonly
+                placeholder="Your updated code will appear here..."
+                class="w-full h-64 p-4 bg-slate-950/50 border border-slate-800 rounded-xl font-mono text-sm text-green-400 outline-none whitespace-pre resize-y"
+            ></textarea>
+        </section>
+
+    </div>
+
+    <script>
+        // State Management
+        let imageNodes = [];
+        const inputCode = document.getElementById('input-code');
+        const outputCode = document.getElementById('output-code');
+        const tableBody = document.getElementById('table-body');
+        const counterBadge = document.getElementById('image-count');
+
+        // Promptframes / Mock Data Injection
+        function loadSample() {
+            inputCode.value = `<!-- Hero Section -->\n<div class="hero-container">\n  <img id="main-banner" class="w-full object-cover" src="hero-summer.jpg" alt="Summer Sale">\n</div>\n\n<!-- User Profiles -->\n<div class="user-card">\n  <img class="avatar rounded-full" src="default-user.png">\n  <h3>John Doe</h3>\n</div>`;
+            processCode();
+        }
+
+        /**
+         * Step 1: Parse the raw string to extract <img> data
+         */
+        function processCode() {
+            const htmlString = inputCode.value;
+            imageNodes = [];
+            
+            // Regex to isolate <img> tags
+            const imgRegex = /<img([^>]+)>/gi;
+            // Regex to extract specific attributes within the tag safely
+            const srcRegex = /src=(["'])(.*?)\1/i;
+            
+            let match;
+            while ((match = imgRegex.exec(htmlString)) !== null) {
+                const fullTag = match[0];
+                const attributes = match[1];
+                const srcMatch = attributes.match(srcRegex);
+                
+                if (srcMatch) {
+                    // Extract context for the user UI
+                    const idMatch = attributes.match(/id=(["'])(.*?)\1/i);
+                    const classMatch = attributes.match(/class=(["'])(.*?)\1/i);
+                    
+                    imageNodes.push({
+                        originalTag: fullTag,
+                        currentSrc: srcMatch[2],
+                        newSrc: srcMatch[2], // Defaults to original until edited
+                        id: idMatch ? idMatch[2] : null,
+                        classes: classMatch ? classMatch[2] : null
+                    });
+                }
+            }
+            
+            renderTable();
+            updateOutput(); // Generate output immediately
+        }
+
+        /**
+         * Step 2: Render the management table UI
+         */
+        function renderTable() {
+            counterBadge.innerText = imageNodes.length;
+            
+            if (imageNodes.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="3" class="px-6 py-12 text-center text-slate-400 text-sm">No &lt;img&gt; tags found in the source code.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = imageNodes.map((node, index) => {
+                // Escape HTML to display raw tags safely
+                const safeTag = node.originalTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                
+                return `
+                <tr class="hover:bg-blue-50/50 border-b border-slate-100 last:border-0 transition-colors">
+                    <td class="px-6 py-4 align-top">
+                        <div class="flex flex-col gap-1.5">
+                            <span class="text-xs font-mono bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded inline-block break-all border border-slate-200">
+                                ${safeTag}
+                            </span>
+                            <div class="flex flex-wrap gap-2 text-[10px] uppercase font-bold tracking-wider mt-1">
+                                ${node.id ? `<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">ID: ${node.id}</span>` : ''}
+                                ${node.classes ? `<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded">CLASS: ${node.classes}</span>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 align-top">
+                        <span class="text-sm text-slate-600 font-mono break-all bg-slate-50 p-2 rounded block border border-slate-100">
+                            ${node.currentSrc}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 align-top">
+                        <input 
+                            type="text" 
+                            value="${node.newSrc}"
+                            oninput="updateImageSource(${index}, this.value)"
+                            class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow bg-slate-50 focus:bg-white font-mono text-blue-700"
+                            placeholder="Enter new image URL"
+                        />
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        /**
+         * State Update: Triggers when user types in the table
+         */
+        function updateImageSource(index, newValue) {
+            imageNodes[index].newSrc = newValue;
+            updateOutput(); // Instantly update output code as user types
+        }
+
+        /**
+         * Step 3: Non-destructive HTML string replacement
+         */
+        function updateOutput() {
+            let resultHtml = inputCode.value;
+            if (!resultHtml || imageNodes.length === 0) {
+                outputCode.value = resultHtml || '';
+                return;
+            }
+
+            let i = 0;
+            // Iterate over the string, replacing each <img> sequentially
+            resultHtml = resultHtml.replace(/<img([^>]+)>/gi, (match) => {
+                const srcRegex = /src=(["'])(.*?)\1/i;
+                if (srcRegex.test(match) && imageNodes[i]) {
+                    const node = imageNodes[i];
+                    // Replace ONLY the src string inside this specific <img> tag
+                    let newTag = match.replace(srcRegex, `src=$1${node.newSrc}$1`);
+                    i++;
+                    return newTag;
+                }
+                return match; // Return unchanged if no src found
+            });
+
+            outputCode.value = resultHtml;
+        }
+
+        /**
+         * Clipboard Utility
+         */
+        function copyResult() {
+            if(!outputCode.value) return;
+            
+            outputCode.select();
+            document.execCommand('copy');
+            
+            // Visual feedback
+            const btn = document.getElementById('copy-btn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '✅ Copied Successfully!';
+            btn.classList.add('bg-green-600', 'border-green-500');
+            btn.classList.remove('bg-white/10', 'border-white/10');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('bg-green-600', 'border-green-500');
+                btn.classList.add('bg-white/10', 'border-white/10');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
